@@ -117,7 +117,7 @@ public class MENU extends javax.swing.JFrame {
         txtadminusuario = new javax.swing.JTextPane();
         jPanel6 = new javax.swing.JPanel();
         jScrollPane11 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
+        textBoxBackup = new javax.swing.JTextPane();
         btnexaminarbackup = new javax.swing.JButton();
         btnbackup = new javax.swing.JButton();
         jLabel22 = new javax.swing.JLabel();
@@ -519,14 +519,24 @@ public class MENU extends javax.swing.JFrame {
 
         jPanel6.setBackground(new java.awt.Color(153, 153, 153));
 
-        jTextPane1.setEnabled(false);
-        jScrollPane11.setViewportView(jTextPane1);
+        textBoxBackup.setEnabled(false);
+        jScrollPane11.setViewportView(textBoxBackup);
 
         btnexaminarbackup.setBackground(new java.awt.Color(153, 204, 255));
         btnexaminarbackup.setText("Examinar...");
+        btnexaminarbackup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnexaminarbackupActionPerformed(evt);
+            }
+        });
 
         btnbackup.setBackground(new java.awt.Color(153, 204, 255));
         btnbackup.setText("BACKUP");
+        btnbackup.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnbackupActionPerformed(evt);
+            }
+        });
 
         jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel22.setText("Para hacer una copia de seguridad presione el boton \"examinar\" y busque donde quiere la copia");
@@ -1195,6 +1205,112 @@ public class MENU extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnhaceradminActionPerformed
 
+    private void btnexaminarbackupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnexaminarbackupActionPerformed
+        // TODO add your handling code here:
+        JFileChooser dialogo = new JFileChooser();
+        dialogo.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Solo permitir la selección de directorios
+
+        int valor = dialogo.showOpenDialog(this);
+        if (valor == JFileChooser.APPROVE_OPTION) {
+            File directorio = dialogo.getSelectedFile();
+            String rutaDirectorio = directorio.getAbsolutePath();
+            // Verificar que es un directorio válido
+            if (directorio.isDirectory()) {
+                textBoxBackup.setText(rutaDirectorio);
+            } else {
+                // Mostrar un mensaje de error si no se selecciona un directorio válido
+                JOptionPane.showMessageDialog(this, "Seleccione un directorio válido", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btnexaminarbackupActionPerformed
+
+    private void btnbackupActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnbackupActionPerformed
+        // TODO add your handling code here:
+        //obtenemos las rutas que nos interesan para hacer backup
+        String strError = "";
+        String rutaUs = "C:\\MEIA\\Usuario.txt";
+        String rutaBit = "C:\\MEIA\\Bitacora.txt";
+        String rutaDesUs = "C:\\MEIA\\Desc_Usuario.txt";
+        String rutaDesBit = "C:\\MEIA\\Desc_Bitacora.txt";
+        String rutaBack = "C:\\MEIA\\Backup.txt";
+        String rutaDesBack = "C:\\MEIA\\Desc_Backup.txt";
+        //se obtienen las listas de el archivo de backups y su descriptor
+        List<String> listaBack = new ArrayList<>();
+        if(comprobar(rutaBack, strError) > 0)
+        {
+            listaBack = Obtener(rutaBack, strError);
+        }
+        List<String> listaDesBack = Obtener(rutaDesBack, strError);
+        //se agrega el registro a la lista de backups
+        LocalDateTime fechaHoraActual = LocalDateTime.now();
+        DateTimeFormatter forma = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+        String todo = textBoxBackup.getText() + "|" + usuarioGlo.split("\\|")[0] + "|" + String.valueOf(fechaHoraActual.format(forma));
+        listaBack.add(todo);
+        // Definir un comparador personalizado
+        Comparator<String> comparador = Comparator.comparing(s -> s.split("\\|")[1], String.CASE_INSENSITIVE_ORDER);
+        // Ordenar la lista utilizando el comparador
+        Collections.sort(listaBack, comparador);
+        //borramos el antiguo contenido
+        borrarContenidoArchivo(rutaBack);
+        //ahora se llena con la nueva lista
+        escribirLista(listaBack, rutaBack, strError);
+        //ahora se hace lo mismo pero para el descriptor
+        if(listaDesBack.get(1).equals("-") && listaDesBack.get(2).equals("-"))
+        {
+            listaDesBack.set(1, String.valueOf(fechaHoraActual.format(forma)));
+            listaDesBack.set(2, usuarioGlo.split("\\|")[0]);
+        }
+        listaDesBack.set(3, String.valueOf(fechaHoraActual.format(forma)));
+        listaDesBack.set(4, usuarioGlo.split("\\|")[0]);
+        listaDesBack.set(5, String.valueOf(listaBack.size()));
+        listaDesBack.set(6, String.valueOf(listaBack.size()));
+        //se borra el contenido del descriptor
+        borrarContenidoArchivo(rutaDesBack);
+        //ahora se llena con la nueva lista
+        escribirLista(listaDesBack, rutaDesBack, strError);
+        //tiene que haber una ruta para la carpeta
+        if(textBoxBackup.getText().isEmpty())
+        {
+            //si no hay, se muestra un mensaje de error
+            JOptionPane.showMessageDialog(this, "Seleccione un directorio válido", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        else
+        {
+            //si si hay, se obtiene
+            String rutaCar = textBoxBackup.getText();
+            try 
+            {
+                //luego ya se mandan las copias a la carpeta elegida
+                realizarBackup(rutaUs, rutaCar, "RecoveredUsuario.txt", strError);
+                realizarBackup(rutaBit, rutaCar, "RecoveredBitacora.txt", strError);
+                realizarBackup(rutaDesUs, rutaCar, "RecoveredDescUsuario.txt", strError);
+                realizarBackup(rutaDesBit, rutaCar, "RecoveredDescBitacora.txt", strError);
+                realizarBackup(rutaBack, rutaCar, "RecoveredBackup.txt", strError);
+                realizarBackup(rutaDesBack, rutaCar, "RecoveredDescBackup.txt", strError);
+                JOptionPane.showMessageDialog(this, "Backup realizado con éxito", "Listo", WIDTH);
+            } 
+            catch (Exception e) 
+            {
+                JOptionPane.showMessageDialog(this, "Error al realizar el backup", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_btnbackupActionPerformed
+
+    private void realizarBackup(String rutaOrigen, String rutaDestino, String nombreNuevoArchivo, String strError) {
+    try 
+    {
+        // Lee el contenido del archivo en rutaOrigen
+        List<String> contenido = Obtener(rutaOrigen, strError);
+        // Crea el nuevo archivo en la carpeta especificada
+        String rutaNuevoArchivo = rutaDestino + File.separator + nombreNuevoArchivo;
+        escribirLista(contenido, rutaNuevoArchivo, strError);
+    } 
+    catch (Exception e) 
+    {
+        JOptionPane.showMessageDialog(this, "Error al realizar el backup", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+    
     public void escribirLista(List<String> lista, String ruta, String strError)
     {
         for (int i = 0; i < lista.size(); i++) 
@@ -1556,7 +1672,6 @@ public class MENU extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane8;
     private javax.swing.JScrollPane jScrollPane9;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextPane jTextPane1;
     private javax.swing.JLabel labelApellido;
     private javax.swing.JLabel labelCorreo;
     private javax.swing.JLabel labelEstado;
@@ -1565,6 +1680,7 @@ public class MENU extends javax.swing.JFrame {
     private javax.swing.JLabel labelNum;
     private javax.swing.JLabel labelUsuario;
     private javax.swing.JTextPane textBoxApellido;
+    private javax.swing.JTextPane textBoxBackup;
     private javax.swing.JTextPane textBoxContraseña;
     private javax.swing.JTextPane textBoxCorreo;
     private javax.swing.JTextPane textBoxFecha;

@@ -845,7 +845,7 @@
 
               <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
               <SubComponents>
-                <Component class="javax.swing.JTextPane" name="jTextPane1">
+                <Component class="javax.swing.JTextPane" name="textBoxBackup">
                   <Properties>
                     <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
@@ -859,6 +859,9 @@
                 </Property>
                 <Property name="text" type="java.lang.String" value="Examinar..."/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnexaminarbackupActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnbackup">
               <Properties>
@@ -867,6 +870,9 @@
                 </Property>
                 <Property name="text" type="java.lang.String" value="BACKUP"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnbackupActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel22">
               <Properties>
